@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Main program
+miniSQL
+
+#CMAKE
+CMakeFiles/
+*.cmake
+CmakeCache.txt
+MakeFile
