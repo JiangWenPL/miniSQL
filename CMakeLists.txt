@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.2)
 PROJECT(miniSQL)
 INCLUDE_DIRECTORIES(./include)
 AUX_SOURCE_DIRECTORY(./src DIR_SRCS)
-SET(TESTS
-${DIR_SRCS}
-)
+SET(CMAKE_CXX_FLAGS "-std=c++11 -g ${CMAKE_CXX_FLAGS}")
+SET(TESTS src/index_test.cpp include/IndexManager.h include/BPTree.h)
 ADD_EXECUTABLE(${PROJECT_NAME} ${TESTS})
