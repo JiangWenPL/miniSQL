@@ -5,6 +5,7 @@
 #ifndef MINISQL_BPTREE_H
 #define MINISQL_BPTREE_H
 
+#include "exceptions.h"
 #include <string>
 #include <iostream>
 #include <vector>
@@ -17,7 +18,6 @@
 // For coding convenience, we define an unified node class both represent
 // internal node and leaf node.
 typedef int offset;
-
 
 template<typename T>
 class Node {
@@ -78,7 +78,7 @@ public:
     // Delete the key with value of @value
     // @value value to delete associate with key.
     // @retrun true if success
-    bool delete_key_with_value(int value);
+    bool delete_key_start_by(int start_index);
 
     // @return: return the pointer Node* sbling
     Node *get_sibling_node();
@@ -321,7 +321,7 @@ int Node<T>::insert_key(const T &key) {
         int index = 0;
         bool exist = find_by_key(key, index);
         if (exist) {
-            //TODO: raise exception
+            throw DuplicateKey();
         } else {
             // Insert key into keys
             for (int i = key_num; i > index; i--)
@@ -346,7 +346,7 @@ int Node<T>::insert_key(const T &key) {
 template<class T>
 int Node<T>::insert_key(const T &key, const int &val) {
     if (!is_leaf) {
-        // TODO: Raise exception of visited by internal nodes.
+        throw BPTreeInnerException("This method is not allowed to be visted by internal nodes.");
         return -1;
     }
 
@@ -360,7 +360,7 @@ int Node<T>::insert_key(const T &key, const int &val) {
         int index = 0;
         bool exist = find_by_key(key, index);
         if (exist) {
-            // TODO: raise exception of duplicate key
+            throw DuplicateKey();
         } else {
             // Adjust key & values.
             for (int i = key_num; i > index; i--) {
@@ -378,13 +378,13 @@ int Node<T>::insert_key(const T &key, const int &val) {
 }
 
 template<class T>
-bool Node<T>::delete_key_with_value(int value) {
-    if (value > key_num) {
-        // TODO: raise exception of values
+bool Node<T>::delete_key_start_by(int start_index) {
+    if (start_index > key_num) {
+        throw BPTreeInnerException("Start index to delete is bigger than number of keys in this node");
     } else {
         if (is_leaf) {
             // For leaf node also move values
-            for (int i = value; i < key_num - 1; i++) {
+            for (int i = start_index; i < key_num - 1; i++) {
                 keys[i] = keys[i + 1];
                 values[i] = values[i + 1];
             }
@@ -392,10 +392,10 @@ bool Node<T>::delete_key_with_value(int value) {
             values[key_num - 1] = int();
         } else {
             // As for internal node.
-            for (int i = value; i < key_num - 1; i++)
+            for (int i = start_index; i < key_num - 1; i++)
                 keys[i] = keys[i + 1];
             // Update child pointers
-            for (int i = value + 1; i < key_num; i++)
+            for (int i = start_index + 1; i < key_num; i++)
                 child[i] = child[i + 1];
 
             keys[key_num - 1] = T();
@@ -526,7 +526,7 @@ bool BPTree<T>::insert(const T &key, const int value) {
     // Check if exist
     find_by_key(root, key, info);
     if (info.is_found) {
-        // TODO: raise duplicate key exception
+        throw DuplicateKey();
         return false;
     } else {
         info.pNode->insert_key(key, value);
@@ -590,17 +590,17 @@ bool BPTree<T>::delete_by_key(const T &key) {
     search_info info;
     // Root node not exist.
     if (!root) {
-        // TODO: raise exception of null root
+        throw BPTreeInnerException("Tree to delete with a null root");
         return false;
     } else {
         find_by_key(root, key, info);
         if (!info.is_found) {
-            // TODO: raise exception of deleting the key not exists.
+            throw KeyNotExist();
             return false;
         } else {
             if (info.pNode->is_root()) {
                 // This tree just contain an root node.
-                info.pNode->delete_key_with_value(info.value);
+                info.pNode->delete_key_start_by(info.value);
                 key_num--;
                 return adjust_after_delete(info.pNode);
             } else {
@@ -620,13 +620,13 @@ bool BPTree<T>::delete_by_key(const T &key) {
 
                     cur_father->keys[index] = info.pNode->keys[1];
 
-                    info.pNode->delete_key_with_value(info.value);
+                    info.pNode->delete_key_start_by(info.value);
                     key_num--;
                     return adjust_after_delete(info.pNode);
 
                 } else {
                     // Update lead node.
-                    info.pNode->delete_key_with_value(info.value);
+                    info.pNode->delete_key_start_by(info.value);
                     key_num--;
                     return adjust_after_delete(info.pNode);
                 }
@@ -682,14 +682,14 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
                     }
                     pNode->keys[0] = brother->keys[brother->key_num - 1];
                     pNode->values[0] = brother->values[brother->key_num - 1];
-                    brother->delete_key_with_value(brother->key_num - 1);
+                    brother->delete_key_start_by(brother->key_num - 1);
 
                     pNode->key_num++;
                     father->keys[index] = pNode->keys[0];
                     return true;
 
                 } else {
-                    father->delete_key_with_value(index);
+                    father->delete_key_start_by(index);
 
                     for (int i = 0; i < pNode->key_num; i++) {
                         brother->keys[i + brother->key_num] = pNode->keys[i];
@@ -713,7 +713,7 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
                     pNode->keys[pNode->key_num] = brother->keys[0];
                     pNode->values[pNode->key_num] = brother->values[0];
                     pNode->key_num++;
-                    brother->delete_key_with_value(0);
+                    brother->delete_key_start_by(0);
                     if (father->child[0] == pNode)
                         father->keys[0] = brother->keys[0];
                     else
@@ -726,9 +726,9 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
                         pNode->values[pNode->key_num + i] = brother->values[i];
                     }
                     if (pNode == father->child[0])
-                        father->delete_key_with_value(0);
+                        father->delete_key_start_by(0);
                     else
-                        father->delete_key_with_value(index + 1);
+                        father->delete_key_start_by(index + 1);
                     pNode->key_num += brother->key_num;
                     pNode->sibling = brother->sibling;
                     delete brother;
@@ -757,13 +757,13 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
 
                     if (brother->child[brother->key_num])
                         brother->child[brother->key_num]->father = pNode;
-                    brother->delete_key_with_value(brother->key_num - 1);
+                    brother->delete_key_start_by(brother->key_num - 1);
 
                     return true;
 
                 } else {
                     brother->keys[brother->key_num] = father->keys[index];
-                    father->delete_key_with_value(index);
+                    father->delete_key_start_by(index);
                     brother->key_num++;
 
                     for (int i = 0; i < pNode->key_num; i++) {
@@ -800,7 +800,7 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
                         father->keys[index + 1] = brother->keys[0];
 
                     brother->child[0] = brother->child[1];
-                    brother->delete_key_with_value(0);
+                    brother->delete_key_start_by(0);
 
                     return true;
                 } else {
@@ -808,9 +808,9 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
                     pNode->keys[pNode->key_num] = father->keys[index];
 
                     if (pNode == father->child[0])
-                        father->delete_key_with_value(0);
+                        father->delete_key_start_by(0);
                     else
-                        father->delete_key_with_value(index + 1);
+                        father->delete_key_start_by(index + 1);
 
                     pNode->key_num++;
 

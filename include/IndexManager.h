@@ -73,13 +73,7 @@ const int m_string::str_size;
 
 
 class IndexManager {
-private:
-    // TODO:
-//    typedef char var_char[max_var_char]; // Deprecated
-    std::map<std::string, BPTree<int> *> int_tree;
-    std::map<std::string, BPTree<float> *> float_tree;
-    std::map<std::string, BPTree<m_string> *> char_tree;
-    std::map<std::string, int> type_reminder;
+
 public:
     typedef struct data_group {
         int type_indicator;
@@ -120,6 +114,11 @@ public:
 
     void delete_index(const std::string &index_name, const dtype &key);
 
+private:
+    std::map<std::string, BPTree<int> *> int_tree;
+    std::map<std::string, BPTree<float> *> float_tree;
+    std::map<std::string, BPTree<m_string> *> char_tree;
+    std::map<std::string, int> type_reminder;
 
 };
 
@@ -130,7 +129,7 @@ IndexManager::~IndexManager() = default;
 void IndexManager::create_index(std::string index_name, int type_indicator) {
     auto it = type_reminder.find(index_name);
     if (it != type_reminder.end()) {
-        //TODO: raise duplicate index name exception
+        throw DuplicateIndex();
         return;
     }
     type_reminder[index_name] = type_indicator;
@@ -146,7 +145,7 @@ void IndexManager::create_index(std::string index_name, int type_indicator) {
 void IndexManager::drop_index(const std::string &index_name) {
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return;
     }
     auto data_type = it->second;
@@ -168,12 +167,12 @@ void IndexManager::drop_index(const std::string &index_name) {
 void IndexManager::insert_index(const std::string &index_name, const IndexManager::dtype &key, const offset &value) {
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return;
     }
     auto data_type = it->second;
     if (key.type_indicator != data_type) {
-        //TODO: raise type to insert is not type to store.
+        throw TypeDisaccord();
         return;
     }
     if (data_type == type_int) {
@@ -191,12 +190,12 @@ void IndexManager::insert_index(const std::string &index_name, const IndexManage
 void IndexManager::delete_index(const std::string &index_name, const IndexManager::dtype &key) {
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return;
     }
     auto data_type = it->second;
     if (key.type_indicator != data_type) {
-        //TODO: raise type to insert is not type to store.
+        throw TypeDisaccord();
         return;
     }
     if (data_type == type_int) {
@@ -215,12 +214,12 @@ std::vector<offset> IndexManager::search_equal(const std::string &index_name, co
     std::vector<offset> result;
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return result;
     }
     auto data_type = it->second;
     if (data.type_indicator != data_type) {
-        //TODO: raise type to search is not type to store.
+        throw TypeDisaccord();
         return result;
     }
     if (data_type == type_int) {
@@ -240,12 +239,12 @@ std::vector<offset> IndexManager::search_greater(const std::string &index_name, 
     auto result = std::vector<offset>();
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return result;
     }
     auto data_type = it->second;
     if (key_begin.type_indicator != data_type) {
-        //TODO: raise type to search is not type to store.
+        throw TypeDisaccord();
         return result;
     }
     if (data_type == type_int) {
@@ -264,12 +263,12 @@ std::vector<offset> IndexManager::search_smaller(const std::string &index_name, 
     auto result = std::vector<offset>();
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return result;
     }
     auto data_type = it->second;
     if (key_end.type_indicator != data_type) {
-        //TODO: raise type to search is not type to store.
+        throw TypeDisaccord();
         return result;
     }
     if (data_type == type_int) {
@@ -289,12 +288,12 @@ std::vector<offset> IndexManager::search_between(const std::string &index_name, 
     auto result = std::vector<offset>();
     auto it = type_reminder.find(index_name);
     if (it == type_reminder.end()) {
-        //TODO: raise exception drop index not existing.
+        throw IndexNotExist();
         return result;
     }
     auto data_type = it->second;
     if (key_begin.type_indicator != data_type || key_end.type_indicator != data_type) {
-        //TODO: raise type to search is not type to store.
+        throw TypeDisaccord();
         return result;
     }
     if (data_type == type_int) {

@@ -5,7 +5,7 @@
 
 
 int main() {
-    char *h = const_cast<char *>("Hello");
+    auto *h = const_cast<char *>("Hello");
     m_string str(h);
     auto s2 = h;
     char h1[] = "H";
