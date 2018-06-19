@@ -978,15 +978,6 @@ template<class T>
 int BPTree<T>::count_block_num(const std::string &index_name) {
     // TODO: get block number:
     return 0;
-    /*
-    char *p;
-    int block_num = -1;
-    do {
-        p = buffer_manager.getPage(index_name, block_num + 1);
-        block_num++;
-    } while (p[0] != '\0');
-    return block_num;
-     */
 }
 
 template<class T>
