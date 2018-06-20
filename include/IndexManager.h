@@ -20,6 +20,10 @@ public:
         memcpy(str, c_ptr, (size_t) std::min((int) strlen(c_ptr), str_size));
     }
 
+    explicit m_string(const std::string &std_str) {
+        memcpy(str, std_str.c_str(), (size_t) std::min((int) std_str.size(), str_size));
+    }
+
     m_string &operator=(const m_string &) = default;
 
     m_string &operator=(const std::string &std_str) {
@@ -80,6 +84,33 @@ public:
         int int_value;
         float float_value;
         m_string var_char;
+    public:
+        data_group() = default;
+
+        data_group(int i) : int_value(i), type_indicator(type_int) {}
+
+        data_group(float f) : float_value(f), type_indicator(type_float) {}
+
+        data_group(const std::string &std_str) : var_char(std_str), type_indicator(static_cast<int>(std_str.size())) {}
+
+        data_group operator=(const int &i) {
+            int_value = i;
+            type_indicator = type_int;
+            return *this;
+        }
+
+        data_group operator=(const float &f) {
+            float_value = f;
+            type_indicator = type_float;
+            return *this;
+        }
+
+        data_group operator=(const std::string &std_str) {
+            var_char = std_str;
+            type_indicator = static_cast<int>(std_str.size());
+            return *this;
+        }
+
     } dtype;
     static const int type_int = -1;
     static const int type_float = -2;
