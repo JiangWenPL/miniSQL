@@ -76,6 +76,20 @@ private:
     const char *ptr;
 };
 
+class BatchSizeNotEqual : public std::exception {
+public:
+    explicit BatchSizeNotEqual(const char *ptr = "Vector size not equal in batch insertion") : ptr(ptr) {}
+
+    char const *what() const noexcept override {
+        std::cout << this->ptr << std::endl;
+        return ptr;
+    }
+
+
+private:
+    const char *ptr;
+};
+
 class BPTreeInnerException : public std::exception {
 public:
     explicit BPTreeInnerException(const char *ptr = "Inner erro in B+ tree")

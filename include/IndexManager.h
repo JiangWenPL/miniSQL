@@ -110,6 +110,10 @@ public:
 
     void insert_index(const std::string &index_name, const dtype &key, const offset &value);
 
+    void
+    batch_insert(const std::string &index_name, const std::vector<dtype> &keys, const std::vector<offset> &values);
+
+
     void drop_index(const std::string &index_name);
 
     void delete_index(const std::string &index_name, const dtype &key);
@@ -305,6 +309,16 @@ std::vector<offset> IndexManager::search_between(const std::string &index_name, 
     } else {
         auto p_tree = char_tree[index_name];
         return p_tree->search_between(key_begin.var_char, key_end.var_char);
+    }
+}
+
+void IndexManager::batch_insert(const std::string &index_name, const std::vector<IndexManager::dtype> &keys,
+                                const std::vector<offset> &values) {
+    if (keys.size() != values.size()) {
+        throw BatchSizeNotEqual();
+    }
+    for (int i = 0; i < keys.size(); i++) {
+        insert_index(index_name, keys[i], values[i]);
     }
 }
 
