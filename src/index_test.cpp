@@ -2,22 +2,41 @@
 #ifdef INDEX_TEST
 
 #include "IndexManager.h"
-
+#include <random>
 
 int main() {
-    auto *h = const_cast<char *>("Hello");
-    m_string str(h);
-    auto s2 = h;
-    char h1[] = "H";
-    m_string s1(h1);
     IndexManager indexManager;
     std::string name = "fuck";
-    indexManager.create_index(name, IndexManager::max_var_char);
-    IndexManager::dtype d;
-    d.type_indicator = IndexManager::max_var_char;
-    d.var_char = "f";
-    indexManager.insert_index(name, d, 10);
-    indexManager.delete_index(name, d);
+    indexManager.create_index(name, IndexManager::type_int);
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> dis(-1000, 1000);
+    for (int j = 0; j < 10000; j++) {
+        try {
+            auto i = dis(gen);
+            indexManager.insert_index(name, i, i);
+        } catch (std::exception &e) { ;
+        }
+    }
+    for (int j = 0; j < 10000; j++) {
+        try {
+            auto i = dis(gen);
+            indexManager.delete_index(name, i);
+        } catch (std::exception &e) { ;
+        }
+    }
+    for (int j = 0; j < 10000; j++) {
+        try {
+            auto i = dis(gen);
+            auto k = dis(gen);
+            indexManager.search_equal(name, i);
+            indexManager.search_between(name, i, k);
+            indexManager.search_smaller(name, i);
+            indexManager.search_greater(name, i);
+
+        } catch (std::exception &e) { ;
+        }
+    }
     return 0;
 }
 

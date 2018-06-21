@@ -48,6 +48,7 @@ private:
     const char *ptr;
 };
 
+
 class IndexNotExist : public std::exception {
 public:
     explicit IndexNotExist(const char *ptr = "Index to search is not exist") : ptr(ptr) {}
