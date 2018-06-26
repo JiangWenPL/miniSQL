@@ -110,8 +110,8 @@ BPTree<T>::BPTree(std::string &name):
         key_num(0),
         level(0),
         node_num(0),
-        root(NULL),
-        p_leaf_head(NULL) {
+        root(nullptr),
+        p_leaf_head(nullptr) {
 
     key_size = sizeof(T);
     degree = (PAGESIZE - sizeof(int)) / (sizeof(T) + sizeof(int));
@@ -128,7 +128,7 @@ template<class T>
 BPTree<T>::~BPTree() {
     destroy_tree(root);
     key_num = 0;
-    root = NULL;
+    root = nullptr;
     level = 0;
 }
 
@@ -313,16 +313,16 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
         else {
             // None leaf node
             if (root->is_leaf) {
-                // If root is also a leaf node, we shall set root = NULL
+                // If root is also a leaf node, we shall set root = nullptr
                 delete pNode;
-                root = NULL;
-                p_leaf_head = NULL;
+                root = nullptr;
+                p_leaf_head = nullptr;
                 level--;
                 node_num--;
             } else {
                 // son of root node become leaf
                 root = pNode->child[0];
-                root->father = NULL;
+                root->father = nullptr;
                 delete pNode;
                 level--;
                 node_num--;
@@ -330,7 +330,7 @@ bool BPTree<T>::adjust_after_delete(Tree pNode) {
         }
     } else {
         // Non root
-        Tree father = pNode->father, brother = NULL;
+        Tree father = pNode->father, brother = nullptr;
         if (pNode->is_leaf) {
             // delete in leaf
             int index = 0;
@@ -511,7 +511,7 @@ void BPTree<T>::destroy_tree(Tree tree) {
     if (!tree->is_leaf) {
         for (unsigned int i = 0; i <= tree->key_num; i++) {
             destroy_tree(tree->child[i]);
-            tree->child[i] = NULL;
+            tree->child[i] = nullptr;
         }
     }
     delete tree;
@@ -529,24 +529,24 @@ std::vector<offset> BPTree<T>::search_between(const T &begin_key, const T &end_k
     bool finished;
     int index;
 
-    if (begin_key <= end_key) {
-        Tree pNode = info1.pNode;
-        index = info1.value;
-        do {
-            finished = pNode->find_in_range(index, end_key, results);
-            index = 0;
-            if (pNode->sibling == NULL)
-                break;
-            else
-                pNode = pNode->get_sibling_node();
-        } while (!finished);
-    } else {
+    if (begin_key > end_key) {
         Tree pNode = info2.pNode;
         index = info2.value;
         do {
             finished = pNode->find_in_range(index, begin_key, results);
             index = 0;
-            if (pNode->sibling == NULL)
+            if (pNode->sibling == nullptr)
+                break;
+            else
+                pNode = pNode->get_sibling_node();
+        } while (!finished);
+    } else {
+        Tree pNode = info1.pNode;
+        index = info1.value;
+        do {
+            finished = pNode->find_in_range(index, end_key, results);
+            index = 0;
+            if (pNode->sibling == nullptr)
                 break;
             else
                 pNode = pNode->get_sibling_node();
@@ -572,7 +572,7 @@ std::vector<offset> BPTree<T>::search_smaller(const T &end_key) {
     do {
         finished = pNode->find_greater_than(index, results);
         index = 0;
-        if (pNode->sibling == NULL)
+        if (pNode->sibling == nullptr)
             break;
         else
             pNode = pNode->get_sibling_node();
@@ -597,7 +597,7 @@ std::vector<offset> BPTree<T>::search_greater(const T &begin_key) {
     do {
         finished = pNode->find_greater_than(index, results);
         index = 0;
-        if (pNode->sibling == NULL)
+        if (pNode->sibling == nullptr)
             break;
         else
             pNode = pNode->get_sibling_node();
@@ -610,7 +610,7 @@ std::vector<offset> BPTree<T>::search_greater(const T &begin_key) {
 template<class T>
 void BPTree<T>::print_leaf() {
     Tree p = p_leaf_head;
-    while (p != NULL) {
+    while (p != nullptr) {
         p->print_node();
         p = p->get_sibling_node();
     }
